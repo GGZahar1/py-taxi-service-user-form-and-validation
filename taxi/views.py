@@ -108,7 +108,8 @@ class DriverDeleteView(LoginRequiredMixin, generic.DeleteView):
 
 
 @login_required
-def assign_driver_to_car(request: HttpRequest, pk: int) -> PermissionDenied | HttpResponse:
+def assign_driver_to_car(request: HttpRequest,
+                         pk: int) -> PermissionDenied | HttpResponse:
     if not hasattr(request.user, "driver"):
         return PermissionDenied("Only drivers can assign themselves to a car.")
     car = get_object_or_404(Car, id=pk)
@@ -126,6 +127,6 @@ def assign_driver_to_car(request: HttpRequest, pk: int) -> PermissionDenied | Ht
         request,
         "taxi/car_detail.html",
         context={
-            "car":car,
-            "is_assigned":is_assigned}
+            "car": car,
+            "is_assigned": is_assigned}
     )
