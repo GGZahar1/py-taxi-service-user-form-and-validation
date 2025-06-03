@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.urls import reverse_lazy
 from django.views import generic
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -107,8 +108,10 @@ class DriverDeleteView(LoginRequiredMixin, generic.DeleteView):
 
 
 @login_required
-def assign_driver_to_car(request: HttpRequest, pk: int) -> HttpResponse:
-    car = Car.objects.get(id=pk)
+def assign_driver_to_car(request: HttpRequest, pk: int) -> PermissionDenied | HttpResponse:
+    if not hasattr(request.user, "driver"):
+        return PermissionDenied("Only drivers can assign themselves to a car.")
+    car = get_object_or_404(Car, id=pk)
     driver = request.user
 
     if car in driver.cars.all():
@@ -117,8 +120,12 @@ def assign_driver_to_car(request: HttpRequest, pk: int) -> HttpResponse:
     else:
         driver.cars.add(car)
 
+    is_assigned = car in driver.cars.all()
+
     return render(
         request,
         "taxi/car_detail.html",
-        context={"car": car}
+        context={
+            "car":car,
+            "is_assigned":is_assigned}
     )
